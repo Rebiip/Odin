@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/src/main/resources/db/migration/V1__Initial_Migration.sql" value="9213eab8-37c5-4b63-8c32-b2121646ebc9" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/db/migration/V2__Sector_Table.sql" value="9213eab8-37c5-4b63-8c32-b2121646ebc9" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/db/migration/V3__Added_Active_Field_To_Data_Tables.sql" value="9213eab8-37c5-4b63-8c32-b2121646ebc9" />
+  </component>
+</project>

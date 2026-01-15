@@ -1,0 +1,69 @@
+greeting:
+  profile: dev
+quarkus:
+  application:
+    name: odin-gateway
+    version: ${project.version}
+  oidc:
+    client-id: asgard
+    credentials:
+      secret: ${OIDC_CLIENT_SECRET:AtQhqI6rWCck3BeyJU0U5kyoDRJzsjq4}
+    auth-server-url: https://keycloak.rebiip.com.br/realms/heimdall
+    application-type: service
+  keycloak:
+    policy-enforcer:
+      enabled: true
+      enforcement-mode: ENFORCING
+      paths:
+#        regionItem:
+#          paths: ["/api/v1/regions"]
+#        regionCollection:
+#          paths: [ "/api/v1/regions/*"]
+#        countryItem:
+#          paths: [ "/api/v1/countries" ]
+#        countryCollection:
+#          paths: [ "/api/v1/countries/*" ]
+        health:
+          name: health
+          paths: [ "/q/health", "/q/health/*" ]
+          enforcement-mode: disabled
+  http:
+    port: 2500
+    read-timeout: 30M
+    cors:
+      enabled: true
+      methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+      headers: "Content-Type, Authorization, Origin, Referer, User-Agent"
+      origins: /.*/
+      access-control-allow-credentials: true
+  thread-pool:
+    core-threads: 10
+    keep-alive-time: 1M
+  log:
+    level: INFO
+#    category:
+#      "org.keycloak":
+#        level:  DEBUG
+#      "io.quarkus.keycloak":
+#        level: DEBUG
+    console:
+      format: "%n %d{yyyy-MM-dd HH:mm:ss.SSS} [%p] [%t] [ %X{user} ] %C : %s"
+
+gateway:
+  # Route matching uses the longest matching path-prefix.
+  # Targets can be provided either by explicit base-url or by kubernetes service-name (+ optional scheme/port).
+  routes:
+    bifrost:
+      path-prefixes: [ "/bifrost" ]
+      strip-prefix: true
+      target:
+        service-name: ${BIFROST_SERVICE_NAME:localhost}
+        scheme: ${BIFROST_SCHEME:http}
+        port: ${BIFROST_TARGET_PORT:${BIFROST_SERVICE_PORT:2222}}
+    mimir:
+      path-prefixes: [ "/mimir" ]
+      strip-prefix: true
+      target:
+        service-name: ${MIMIR_SERVICE_NAME:localhost}
+        scheme: ${MIMIR_SCHEME:http}
+        port: ${MIMIR_TARGET_PORT:${MIMIR_SERVICE_PORT:2400}}

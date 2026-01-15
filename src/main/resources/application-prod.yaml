@@ -1,0 +1,73 @@
+greeting:
+  profile: prod
+quarkus:
+  application:
+    name: odin-gateway
+    version: ${project.version}
+  oidc:
+    client-id: odin-gateway
+    credentials:
+      secret: ${OIDC_CLIENT_SECRET}
+    auth-server-url: https://keycloak.rebiip.com.br/realms/heimdall
+    application-type: service
+  keycloak:
+    policy-enforcer:
+      enabled: true
+      enforcement-mode: ENFORCING
+      paths:
+        health:
+          name: health
+          paths: [ "/q/health", "/q/health/*" ]
+          enforcement-mode: disabled
+  http:
+    port: 2500
+    read-timeout: 30M
+    cors:
+      enabled: true
+      methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+      headers: "Content-Type, Authorization, Origin, Referer, User-Agent"
+      origins: /.*/
+      access-control-allow-credentials: true
+  thread-pool:
+    core-threads: 10
+    keep-alive-time: 1M
+  log:
+    level: INFO
+    category:
+      "org.keycloak":
+        level: INFO
+      "io.quarkus.keycloak":
+        level: INFO
+      "io.quarkus.vertx.http.runtime.QuarkusErrorHandler":
+        level: DEBUG
+    console:
+      format: "%n %d{yyyy-MM-dd HH:mm:ss.SSS} [%p] [%t] [ %X{user} ] %C : %s%e"
+  datasource:
+    enabled: false
+  swagger-ui:
+    always-include: true
+  smallrye-openapi:
+    info-title: MIMIR-SERVICE
+    info-version: ${project.version}
+    info-description: Mimir Service to handle global setup
+    info-license-name: Apache 2.0
+    info-license-url: https://www.apache.org/licenses/LICENSE-2.0.html
+    security-scheme: jwt
+    auto-add-security-requirement: false
+
+gateway:
+  routes:
+    bifrost:
+      path-prefixes: [ "/bifrost" ]
+      strip-prefix: true
+      target:
+        service-name: ${BIFROST_SERVICE_NAME:bifrost}
+        scheme: ${BIFROST_SCHEME:http}
+        port: ${BIFROST_TARGET_PORT:${BIFROST_SERVICE_PORT:2222}}
+    mimir:
+      path-prefixes: [ "/mimir" ]
+      strip-prefix: true
+      target:
+        service-name: ${MIMIR_SERVICE_NAME:mimir}
+        scheme: ${MIMIR_SCHEME:http}
+        port: ${MIMIR_TARGET_PORT:${MIMIR_SERVICE_PORT:2400}}
