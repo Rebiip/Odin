@@ -2,12 +2,16 @@ package adapters.in.communication.rest.gateway;
 
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
 import testresources.DownstreamVertxStubTestResource;
+
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
 @QuarkusTestResource(DownstreamVertxStubTestResource.class)
@@ -77,5 +81,19 @@ class ApiGatewayResourceTest {
                 .header("X-Downstream-Error", equalTo("1"))
                 .contentType("application/json")
                 .body(equalTo("{\"error\":\"internal\"}"));
+    }
+
+    @Test
+    void shouldNotDuplicateCorsAllowOriginHeaderWhenDownstreamSendsItToo() {
+        Response response = given()
+                .header("Origin", "http://localhost:3000")
+                .when()
+                .get("/api/v1/cors-header");
+
+        response.then().statusCode(200);
+
+        List<String> allowOriginValues = response.getHeaders().getValues("Access-Control-Allow-Origin");
+        assertEquals(1, allowOriginValues.size());
+        assertEquals("http://localhost:3000", allowOriginValues.get(0));
     }
 }

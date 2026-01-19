@@ -20,6 +20,16 @@ public class DownstreamVertxStubTestResource implements QuarkusTestResourceLifec
         server.requestHandler(req -> req.bodyHandler(body -> {
             System.out.println("[DEBUG_LOG] Downstream stub received " + req.method() + " " + req.path() + (req.query() == null ? "" : ("?" + req.query())));
 
+            if ("/api/v1/cors-header".equals(req.path())) {
+                String origin = req.getHeader("Origin");
+                req.response()
+                        .putHeader("Content-Type", "text/plain")
+                        .putHeader("Access-Control-Allow-Origin", origin == null ? "" : origin)
+                        .setStatusCode(200)
+                        .end("ok");
+                return;
+            }
+
             if ("/api/v1/error-400".equals(req.path())) {
                 req.response()
                         .putHeader("Content-Type", "application/json")

@@ -126,6 +126,10 @@ public class ApiGatewayResource {
                     continue;
                 }
 
+                if (k.regionMatches(true, 0, "Access-Control-", 0, "Access-Control-".length())) {
+                    continue;
+                }
+
                 if (k.equalsIgnoreCase("Content-Type") && !values.isEmpty()) {
                     contentType = values.get(0);
                     continue;

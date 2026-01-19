@@ -33,9 +33,9 @@ quarkus:
   swagger-ui:
     always-include: false
   smallrye-openapi:
-    info-title: HPE-SETUP-SERVICE
+    info-title: ODIN-SERVICE
     info-version: ${project.version}
-    info-description: HPE Monitoring setup service module
+    info-description: ODIN gateway service
     info-license-name: Apache 2.0
     info-license-url: https://www.apache.org/licenses/LICENSE-2.0.html
     security-scheme: jwt
