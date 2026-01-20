@@ -65,7 +65,7 @@ public class ProxyRequestService implements ProxyRequestUseCase {
 
         String downstreamPath = match.route.rewritePath(request.path(), match.matchedPrefix);
 
-        log.info("[DEBUG_LOG] Matched route id={} matchedPrefix={} stripPrefix={} baseUrl={} downstreamPath={}",
+        log.info("Matched route id={} matchedPrefix={} stripPrefix={} baseUrl={} downstreamPath={}",
                 match.route.id(), match.matchedPrefix, match.route.stripPrefix(), match.route.target().baseUrl(), downstreamPath);
 
         String url = match.route.target().baseUrl() + downstreamPath;
@@ -82,7 +82,7 @@ public class ProxyRequestService implements ProxyRequestUseCase {
                 request.body()
         );
 
-        log.info("[DEBUG_LOG] Executing downstream request url={}", url);
+        log.info("Executing downstream request url={}", url);
 
         DownstreamResponse downstreamResponse;
         try {
@@ -95,7 +95,7 @@ public class ProxyRequestService implements ProxyRequestUseCase {
             throw new DownstreamRequestFailedException("Downstream request failed", e);
         }
 
-        log.info("[DEBUG_LOG] Downstream response status={}", downstreamResponse.status());
+        log.info("Downstream response status={}", downstreamResponse.status());
 
         return new GatewayResponse(
                 downstreamResponse.status(),

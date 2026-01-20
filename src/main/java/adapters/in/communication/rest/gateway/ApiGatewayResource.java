@@ -131,7 +131,7 @@ public class ApiGatewayResource {
                 }
 
                 if (k.equalsIgnoreCase("Content-Type") && !values.isEmpty()) {
-                    contentType = values.get(0);
+                    contentType = values.getFirst();
                     continue;
                 }
 
