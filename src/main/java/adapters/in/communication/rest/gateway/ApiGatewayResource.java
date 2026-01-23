@@ -2,6 +2,7 @@ package adapters.in.communication.rest.gateway;
 
 import application.dtos.gateway.GatewayRequest;
 import application.dtos.gateway.GatewayResponse;
+import application.dtos.gateway.GatewayStreamResponse;
 import io.smallrye.common.annotation.Blocking;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -22,9 +23,13 @@ import jakarta.ws.rs.core.StreamingOutput;
 import jakarta.ws.rs.core.UriInfo;
 import lombok.extern.slf4j.Slf4j;
 import ports.in.gateway.ProxyRequestUseCase;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Path("")
@@ -98,20 +103,50 @@ public class ApiGatewayResource {
 
         GatewayRequest request = new GatewayRequest(method, normalizedProxyPath, rawQuery, headerMap, body);
 
+        if (isStreamingRequest(method, headers, normalizedProxyPath)) {
+            GatewayStreamResponse gatewayResponse = proxyRequestUseCase.proxyStream(request);
+            log.info("Gateway responding (stream) with status {} for {} {}", gatewayResponse.status(), method, normalizedProxyPath);
+            log.debug("Gateway response (stream) headers={}", gatewayResponse.headers());
+            return toJaxRsStreamingResponse(gatewayResponse);
+        }
+
         GatewayResponse gatewayResponse = proxyRequestUseCase.proxy(request);
         log.info("Gateway responding with status {} for {} {}", gatewayResponse.status(), method, normalizedProxyPath);
         log.info("Gateway response headers={} bodyBytes={}",
                 gatewayResponse.headers(),
                 gatewayResponse.body() == null ? 0 : gatewayResponse.body().length);
-        try {
-            return toJaxRsResponse(gatewayResponse);
-        } catch (RuntimeException e) {
-            log.error("Failed to map gateway response to JAX-RS response. status={} headers={}",
-                    gatewayResponse.status(),
-                    gatewayResponse.headers(),
-                    e);
-            throw e;
+        return toJaxRsResponse(gatewayResponse);
+    }
+
+    private static boolean isStreamingRequest(String method, HttpHeaders headers, String normalizedProxyPath) {
+        if (method == null || !method.equalsIgnoreCase("GET")) {
+            return false;
         }
+
+        if (normalizedProxyPath != null && normalizedProxyPath.endsWith("/stream")) {
+            return true;
+        }
+
+        if (headers == null) {
+            return false;
+        }
+
+        List<String> accepts = headers.getRequestHeader("Accept");
+        if (accepts == null || accepts.isEmpty()) {
+            return false;
+        }
+
+        for (String accept : accepts) {
+            if (accept == null) {
+                continue;
+            }
+            String a = accept.toLowerCase(Locale.ROOT);
+            if (a.contains("multipart/x-mixed-replace")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static Response toJaxRsResponse(GatewayResponse gatewayResponse) {
@@ -151,6 +186,66 @@ public class ApiGatewayResource {
             byte[] body = gatewayResponse.body();
             builder.entity((StreamingOutput) output -> output.write(body));
         }
+        return builder.build();
+    }
+
+    private static Response toJaxRsStreamingResponse(GatewayStreamResponse gatewayResponse) {
+        Response.ResponseBuilder builder = Response.status(gatewayResponse.status());
+
+        String contentType = null;
+        if (gatewayResponse.headers() != null) {
+            for (Map.Entry<String, List<String>> entry : gatewayResponse.headers().entrySet()) {
+                String k = entry.getKey();
+                List<String> values = entry.getValue();
+                if (k == null || values == null) {
+                    continue;
+                }
+
+                if (k.regionMatches(true, 0, "Access-Control-", 0, "Access-Control-".length())) {
+                    continue;
+                }
+
+                if (k.equalsIgnoreCase("Content-Type") && !values.isEmpty()) {
+                    contentType = values.getFirst();
+                    continue;
+                }
+
+                for (String value : values) {
+                    if (value != null) {
+                        builder.header(k, value);
+                    }
+                }
+            }
+        }
+
+        if (contentType != null && !contentType.isBlank()) {
+            builder.type(contentType);
+        }
+
+        // Helpful when running behind certain reverse proxies.
+        builder.header("Cache-Control", "no-cache");
+        builder.header("Pragma", "no-cache");
+        builder.header("X-Accel-Buffering", "no");
+
+        InputStream body = gatewayResponse.body();
+        if (body != null) {
+            builder.entity((StreamingOutput) output -> {
+                byte[] buffer = new byte[16 * 1024];
+                try (InputStream in = body) {
+                    int read;
+                    while ((read = in.read(buffer)) >= 0) {
+                        if (read == 0) {
+                            continue;
+                        }
+                        output.write(buffer, 0, read);
+                        output.flush();
+                    }
+                } catch (IOException ignored) {
+                    // client disconnected / downstream closed; treat as normal for streaming endpoints
+                }
+            });
+        }
+
         return builder.build();
     }
 }

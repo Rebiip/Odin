@@ -2,8 +2,10 @@ package application.services.gateway;
 
 import application.dtos.gateway.DownstreamRequest;
 import application.dtos.gateway.DownstreamResponse;
+import application.dtos.gateway.DownstreamStreamResponse;
 import application.dtos.gateway.GatewayRequest;
 import application.dtos.gateway.GatewayResponse;
+import application.dtos.gateway.GatewayStreamResponse;
 import application.exceptions.DownstreamRequestFailedException;
 import application.exceptions.RouteNotFoundException;
 import configurations.tenancy.TenantIdProvider;
@@ -57,6 +59,12 @@ public class ProxyRequestService implements ProxyRequestUseCase {
         return doProxy(request);
     }
 
+    @Override
+    public GatewayStreamResponse proxyStream(GatewayRequest request) {
+        log.info("ProxyRequestService.proxyStream start method={} path={} query={}", request.method(), request.path(), request.rawQuery());
+        return doProxyStream(request);
+    }
+
     private GatewayResponse doProxy(GatewayRequest request) {
         List<RouteDefinition> routes = routeDefinitionsPort.listRoutes();
 
@@ -98,6 +106,50 @@ public class ProxyRequestService implements ProxyRequestUseCase {
         log.info("Downstream response status={}", downstreamResponse.status());
 
         return new GatewayResponse(
+                downstreamResponse.status(),
+                filterHeaders(downstreamResponse.headers()),
+                downstreamResponse.body()
+        );
+    }
+
+    private GatewayStreamResponse doProxyStream(GatewayRequest request) {
+        List<RouteDefinition> routes = routeDefinitionsPort.listRoutes();
+
+        RouteMatch match = findBestMatch(routes, request.path())
+                .orElseThrow(() -> new RouteNotFoundException("No route found for path: " + request.path()));
+
+        String downstreamPath = match.route.rewritePath(request.path(), match.matchedPrefix);
+
+        log.info("Matched route (stream) id={} matchedPrefix={} stripPrefix={} baseUrl={} downstreamPath={}",
+                match.route.id(), match.matchedPrefix, match.route.stripPrefix(), match.route.target().baseUrl(), downstreamPath);
+
+        String url = match.route.target().baseUrl() + downstreamPath;
+        if (request.rawQuery() != null && !request.rawQuery().isBlank()) {
+            url = url + "?" + request.rawQuery();
+        }
+
+        Map<String, List<String>> downstreamHeaders = withTenantHeader(filterHeaders(request.headers()));
+
+        DownstreamRequest downstreamRequest = new DownstreamRequest(
+                request.method(),
+                url,
+                downstreamHeaders,
+                request.body()
+        );
+
+        log.info("Executing downstream stream request url={}", url);
+
+        DownstreamStreamResponse downstreamResponse;
+        try {
+            downstreamResponse = downstreamHttpPort.executeStream(downstreamRequest);
+        } catch (Exception e) {
+            // For streaming, we do not attempt to read/forward embedded HTTP response bodies here.
+            throw new DownstreamRequestFailedException("Downstream stream request failed", e);
+        }
+
+        log.info("Downstream stream response status={}", downstreamResponse.status());
+
+        return new GatewayStreamResponse(
                 downstreamResponse.status(),
                 filterHeaders(downstreamResponse.headers()),
                 downstreamResponse.body()

@@ -2,6 +2,7 @@ package application.services.gateway;
 
 import application.dtos.gateway.DownstreamRequest;
 import application.dtos.gateway.DownstreamResponse;
+import application.dtos.gateway.DownstreamStreamResponse;
 import application.dtos.gateway.GatewayRequest;
 import configurations.tenancy.TenantIdProvider;
 import domain.gateway.RouteDefinition;
@@ -34,9 +35,18 @@ class ProxyRequestServiceTenancyHeaderTest {
         );
 
         AtomicReference<DownstreamRequest> captured = new AtomicReference<>();
-        DownstreamHttpPort downstreamHttpPort = request -> {
-            captured.set(request);
-            return new DownstreamResponse(200, Map.of(), null);
+        DownstreamHttpPort downstreamHttpPort = new DownstreamHttpPort() {
+            @Override
+            public DownstreamResponse execute(DownstreamRequest request) {
+                captured.set(request);
+                return new DownstreamResponse(200, Map.of(), null);
+            }
+
+            @Override
+            public DownstreamStreamResponse executeStream(DownstreamRequest request) {
+                captured.set(request);
+                return new DownstreamStreamResponse(200, Map.of(), new java.io.ByteArrayInputStream(new byte[0]));
+            }
         };
 
         TenantIdProvider tenantIdProvider = () -> tenantId;

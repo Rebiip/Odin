@@ -2,6 +2,7 @@ package adapters.out.http;
 
 import application.dtos.gateway.DownstreamRequest;
 import application.dtos.gateway.DownstreamResponse;
+import application.dtos.gateway.DownstreamStreamResponse;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.faulttolerance.CircuitBreaker;
 import org.eclipse.microprofile.faulttolerance.Retry;
@@ -29,9 +30,44 @@ public class JdkDownstreamHttpAdapter implements DownstreamHttpPort {
     @Retry(maxRetries = 2, delay = 200)
     @CircuitBreaker(requestVolumeThreshold = 8, failureRatio = 0.5, delay = 5000)
     public DownstreamResponse execute(DownstreamRequest request) {
+        HttpRequest.Builder builder = baseRequestBuilder(request, true);
+
+        try {
+            HttpResponse<byte[]> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());
+            return new DownstreamResponse(
+                    response.statusCode(),
+                    response.headers().map(),
+                    response.body()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public DownstreamStreamResponse executeStream(DownstreamRequest request) {
+        HttpRequest.Builder builder = baseRequestBuilder(request, false);
+        try {
+            HttpResponse<java.io.InputStream> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofInputStream());
+            return new DownstreamStreamResponse(
+                    response.statusCode(),
+                    response.headers().map(),
+                    response.body()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static HttpRequest.Builder baseRequestBuilder(DownstreamRequest request, boolean applyShortTimeout) {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
-                .uri(URI.create(request.url()))
-                .timeout(Duration.ofSeconds(8));
+                .uri(URI.create(request.url()));
+
+        // For standard (non-streaming) requests, keep a short timeout.
+        // For streaming responses (e.g., MJPEG), do not set a request timeout.
+        if (applyShortTimeout) {
+            builder.timeout(Duration.ofSeconds(8));
+        }
 
         if (request.headers() != null) {
             for (Map.Entry<String, List<String>> header : request.headers().entrySet()) {
@@ -52,15 +88,6 @@ public class JdkDownstreamHttpAdapter implements DownstreamHttpPort {
             builder.method(request.method(), HttpRequest.BodyPublishers.noBody());
         }
 
-        try {
-            HttpResponse<byte[]> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofByteArray());
-            return new DownstreamResponse(
-                    response.statusCode(),
-                    response.headers().map(),
-                    response.body()
-            );
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return builder;
     }
 }

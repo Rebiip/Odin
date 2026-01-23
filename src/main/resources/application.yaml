@@ -15,14 +15,6 @@ quarkus:
       enabled: true
       enforcement-mode: ENFORCING
       paths:
-#        regionItem:
-#          paths: ["/api/v1/regions"]
-#        regionCollection:
-#          paths: [ "/api/v1/regions/*"]
-#        countryItem:
-#          paths: [ "/api/v1/countries" ]
-#        countryCollection:
-#          paths: [ "/api/v1/countries/*" ]
         health:
           name: health
           paths: [ "/q/health", "/q/health/*" ]
@@ -50,8 +42,6 @@ quarkus:
       format: "%n %d{yyyy-MM-dd HH:mm:ss.SSS} [%p] [%t] [ %X{user} ] %C : %s"
 
 gateway:
-  # Route matching uses the longest matching path-prefix.
-  # Targets can be provided either by explicit base-url or by kubernetes service-name (+ optional scheme/port).
   routes:
     bifrost:
       path-prefixes: [ "/bifrost" ]
@@ -67,3 +57,17 @@ gateway:
         service-name: ${MIMIR_SERVICE_NAME:localhost}
         scheme: ${MIMIR_SCHEME:http}
         port: ${MIMIR_TARGET_PORT:${MIMIR_SERVICE_PORT:2400}}
+    skuld:
+      path-prefixes: [ "/skuld" ]
+      strip-prefix: true
+      target:
+        service-name: ${SKULD_SERVICE_NAME:localhost}
+        scheme: ${SKULD_SCHEME:http}
+        port: ${SKULD_TARGET_PORT:${SKULD_SERVICE_PORT:2228}}
+    muninn:
+      path-prefixes: [ "/muninn" ]
+      strip-prefix: true
+      target:
+        service-name: ${MUNINN_SERVICE_NAME:localhost}
+        scheme: ${MUNINN_SCHEME:http}
+        port: ${MUNINN_TARGET_PORT:${MUNINN_SERVICE_PORT:2230}}

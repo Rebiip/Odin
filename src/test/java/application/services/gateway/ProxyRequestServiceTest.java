@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test;
 import ports.out.gateway.DownstreamHttpPort;
 import ports.out.gateway.RouteDefinitionsPort;
 
+import application.dtos.gateway.DownstreamRequest;
+import application.dtos.gateway.DownstreamResponse;
+import application.dtos.gateway.DownstreamStreamResponse;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +37,21 @@ class ProxyRequestServiceTest {
                 )
         );
 
-        DownstreamHttpPort downstream = request -> {
-            Response response = Response.status(400)
-                    .type("application/json")
-                    .header("X-Downstream-Error", "1")
-                    .entity("{\"message\":\"bad request\"}")
-                    .build();
-            throw new WebApplicationException(response);
+        DownstreamHttpPort downstream = new DownstreamHttpPort() {
+            @Override
+            public DownstreamResponse execute(DownstreamRequest request) {
+                Response response = Response.status(400)
+                        .type("application/json")
+                        .header("X-Downstream-Error", "1")
+                        .entity("{\"message\":\"bad request\"}")
+                        .build();
+                throw new WebApplicationException(response);
+            }
+
+            @Override
+            public DownstreamStreamResponse executeStream(DownstreamRequest request) {
+                throw new UnsupportedOperationException("Not used in this test");
+            }
         };
 
         TenantIdProvider tenantIdProvider = () -> null;

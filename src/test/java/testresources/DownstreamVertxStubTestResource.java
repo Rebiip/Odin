@@ -5,6 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DownstreamVertxStubTestResource implements QuarkusTestResourceLifecycleManager {
 
@@ -19,6 +20,27 @@ public class DownstreamVertxStubTestResource implements QuarkusTestResourceLifec
 
         server.requestHandler(req -> req.bodyHandler(body -> {
             System.out.println("[DEBUG_LOG] Downstream stub received " + req.method() + " " + req.path() + (req.query() == null ? "" : ("?" + req.query())));
+
+            if ("/api/v1/mjpeg".equals(req.path())) {
+                var resp = req.response();
+                resp.putHeader("Content-Type", "multipart/x-mixed-replace; boundary=frame");
+                resp.setChunked(true);
+                resp.setStatusCode(200);
+
+                AtomicInteger sent = new AtomicInteger(0);
+
+                // First chunk quickly, second chunk later (to detect buffering in the gateway).
+                vertx.setTimer(50, id -> writeFrame(resp, sent));
+                vertx.setTimer(1200, id -> writeFrame(resp, sent));
+                vertx.setTimer(2400, id -> {
+                    writeFrame(resp, sent);
+                    try {
+                        resp.end();
+                    } catch (Exception ignored) {
+                    }
+                });
+                return;
+            }
 
             if ("/api/v1/cors-header".equals(req.path())) {
                 String origin = req.getHeader("Origin");
@@ -87,5 +109,21 @@ public class DownstreamVertxStubTestResource implements QuarkusTestResourceLifec
             } catch (Exception ignored) {
             }
         }
+    }
+
+    private static void writeFrame(io.vertx.core.http.HttpServerResponse resp, AtomicInteger sent) {
+        if (resp == null || resp.ended()) {
+            return;
+        }
+
+        int n = sent.incrementAndGet();
+        String payload = "hello-" + n;
+        byte[] bytes = payload.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+
+        resp.write("--frame\r\n");
+        resp.write("Content-Type: text/plain\r\n");
+        resp.write("Content-Length: " + bytes.length + "\r\n\r\n");
+        resp.write(payload);
+        resp.write("\r\n");
     }
 }
