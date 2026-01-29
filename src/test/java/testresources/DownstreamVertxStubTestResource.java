@@ -21,6 +21,24 @@ public class DownstreamVertxStubTestResource implements QuarkusTestResourceLifec
         server.requestHandler(req -> req.bodyHandler(body -> {
             System.out.println("[DEBUG_LOG] Downstream stub received " + req.method() + " " + req.path() + (req.query() == null ? "" : ("?" + req.query())));
 
+            if (req.path() != null && req.path().startsWith("/api/v1/streaming/hls/") && req.path().endsWith("/index.m3u8")) {
+                var resp = req.response();
+                resp.putHeader("Content-Type", "application/vnd.apple.mpegurl");
+                resp.setChunked(true);
+                resp.setStatusCode(200);
+
+                // Send in chunks to ensure the gateway path is truly streaming-friendly.
+                vertx.setTimer(20, id -> resp.write("#EXTM3U\n"));
+                vertx.setTimer(80, id -> {
+                    resp.write("#EXT-X-VERSION:3\n");
+                    resp.write("#EXT-X-TARGETDURATION:2\n");
+                    resp.write("#EXTINF:2.0,\n");
+                    resp.write("segment0.ts\n");
+                    resp.end();
+                });
+                return;
+            }
+
             if ("/api/v1/mjpeg".equals(req.path())) {
                 var resp = req.response();
                 resp.putHeader("Content-Type", "multipart/x-mixed-replace; boundary=frame");

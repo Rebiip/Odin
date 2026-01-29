@@ -123,6 +123,17 @@ public class ApiGatewayResource {
             return false;
         }
 
+        if (normalizedProxyPath != null) {
+            String p = normalizedProxyPath.toLowerCase(Locale.ROOT);
+            if (p.contains("/streaming/hls/")
+                    || p.endsWith(".m3u8")
+                    || p.endsWith(".ts")
+                    || p.endsWith(".m4s")
+                    || p.endsWith(".key")) {
+                return true;
+            }
+        }
+
         if (normalizedProxyPath != null && normalizedProxyPath.endsWith("/stream")) {
             return true;
         }

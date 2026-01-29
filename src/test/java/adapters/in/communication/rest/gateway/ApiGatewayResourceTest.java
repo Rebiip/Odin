@@ -96,4 +96,17 @@ class ApiGatewayResourceTest {
         assertEquals(1, allowOriginValues.size());
         assertEquals("http://localhost:3000", allowOriginValues.get(0));
     }
+
+    @Test
+    void shouldProxyHlsPlaylistAsStream() {
+        given()
+                .when()
+                .get("/api/v1/streaming/hls/123/index.m3u8")
+                .then()
+                .statusCode(200)
+                .header("X-Accel-Buffering", equalTo("no"))
+                .header("Cache-Control", equalTo("no-cache"))
+                .contentType("application/vnd.apple.mpegurl")
+                .body(containsString("#EXTM3U"));
+    }
 }
