@@ -71,3 +71,10 @@ gateway:
         service-name: ${MIMIR_SERVICE_NAME:mimir}
         scheme: ${MIMIR_SCHEME:http}
         port: ${MIMIR_TARGET_PORT:${MIMIR_SERVICE_PORT:2400}}
+    muninn:
+      path-prefixes: [ "/muninn" ]
+      strip-prefix: true
+      target:
+        service-name: ${MUNINN_SERVICE_NAME:muninn}
+        scheme: ${MUNINN_SCHEME:http}
+        port: ${MUNINN_TARGET_PORT:${MUNINN_SERVICE_PORT:2230}}
