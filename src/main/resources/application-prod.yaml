@@ -63,7 +63,7 @@ gateway:
       target:
         service-name: ${BIFROST_SERVICE_NAME:bifrost}
         scheme: ${BIFROST_SCHEME:http}
-        port: ${BIFROST_TARGET_PORT:${BIFROST_SERVICE_PORT:2222}}
+        port: ${BIFROST_TARGET_PORT:${BIFROST_SERVICE_PORT:8080}}
     mimir:
       path-prefixes: [ "/mimir" ]
       strip-prefix: true
@@ -78,3 +78,11 @@ gateway:
         service-name: ${MUNINN_SERVICE_NAME:muninn}
         scheme: ${MUNINN_SCHEME:http}
         port: ${MUNINN_TARGET_PORT:${MUNINN_SERVICE_PORT:2230}}
+    vardr:
+      path-prefixes: [ "/vardr" ]
+      strip-prefix: true
+      target:
+        service-name: ${MUNINN_SERVICE_NAME:vardr}
+        scheme: ${MUNINN_SCHEME:http}
+        port: ${VARDR_TARGET_PORT:${VADR_SERVICE_PORT:2231}}
+
