@@ -82,7 +82,7 @@ gateway:
       path-prefixes: [ "/vardr" ]
       strip-prefix: true
       target:
-        service-name: ${MUNINN_SERVICE_NAME:vardr}
-        scheme: ${MUNINN_SCHEME:http}
+        service-name: ${VARDR_SERVICE_NAME:vardr}
+        scheme: ${VARDR_SCHEME:http}
         port: ${VARDR_TARGET_PORT:${VADR_SERVICE_PORT:2231}}
 

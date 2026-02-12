@@ -5,9 +5,9 @@ quarkus:
     name: odin-gateway
     version: ${project.version}
   oidc:
-    client-id: asgard
+    client-id: bifrost-service
     credentials:
-      secret: ${OIDC_CLIENT_SECRET:AtQhqI6rWCck3BeyJU0U5kyoDRJzsjq4}
+      secret: ${OIDC_CLIENT_SECRET:io6noq6BHaim7BQhwVNqz8N2r9qhbWbO}
     auth-server-url: https://keycloak.rebiip.com.br/realms/heimdall
     application-type: service
   keycloak:
@@ -71,3 +71,10 @@ gateway:
         service-name: ${MUNINN_SERVICE_NAME:localhost}
         scheme: ${MUNINN_SCHEME:http}
         port: ${MUNINN_TARGET_PORT:${MUNINN_SERVICE_PORT:2230}}
+    vardr:
+      path-prefixes: [ "/vardr" ]
+      strip-prefix: true
+      target:
+        service-name: ${VARDR_SERVICE_NAME:localhost}
+        scheme: ${VARDR_SCHEME:http}
+        port: ${VARDR_TARGET_PORT:${VADR_SERVICE_PORT:2231}}
