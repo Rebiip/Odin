@@ -75,7 +75,7 @@ gateway:
       path-prefixes: [ "/skuld" ]
       strip-prefix: true
       target:
-        service-name: ${SKULD_SERVICE_NAME:localhost}
+        service-name: ${SKULD_SERVICE_NAME:skuld}
         scheme: ${SKULD_SCHEME:http}
         port: ${SKULD_TARGET_PORT:${SKULD_SERVICE_PORT:2228}}
     muninn:
