@@ -71,6 +71,13 @@ gateway:
         service-name: ${MIMIR_SERVICE_NAME:mimir}
         scheme: ${MIMIR_SCHEME:http}
         port: ${MIMIR_TARGET_PORT:${MIMIR_SERVICE_PORT:2400}}
+    skuld:
+      path-prefixes: [ "/skuld" ]
+      strip-prefix: true
+      target:
+        service-name: ${SKULD_SERVICE_NAME:localhost}
+        scheme: ${SKULD_SCHEME:http}
+        port: ${SKULD_TARGET_PORT:${SKULD_SERVICE_PORT:2228}}
     muninn:
       path-prefixes: [ "/muninn" ]
       strip-prefix: true
