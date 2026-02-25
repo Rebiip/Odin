@@ -19,6 +19,11 @@ quarkus:
           name: health
           paths: [ "/q/health", "/q/health/*" ]
           enforcement-mode: disabled
+        openapi:
+          name: openapi
+          paths: [ "/q/openapi", "/q/openapi/*", "/q/swagger-ui", "/q/swagger-ui/*", "/q/metrics", "/q/metrics/*" ]
+          enforcement-mode: disabled
+
   http:
     port: 2500
     read-timeout: 30M
