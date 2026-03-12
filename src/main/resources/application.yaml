@@ -25,7 +25,7 @@ quarkus:
     cors:
       enabled: true
       methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-      headers: "Content-Type, Authorization, Origin, Referer, User-Agent"
+      headers: "Content-Type, Authorization, Origin, Referer, User-Agent, Timezone"
       origins: /.*/
       access-control-allow-credentials: true
   thread-pool:
