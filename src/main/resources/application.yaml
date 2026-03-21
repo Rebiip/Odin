@@ -78,3 +78,10 @@ gateway:
         service-name: ${VARDR_SERVICE_NAME:localhost}
         scheme: ${VARDR_SCHEME:http}
         port: ${VARDR_TARGET_PORT:${VADR_SERVICE_PORT:2231}}
+    hermod:
+      path-prefixes: [ "/hermod" ]
+      strip-prefix: true
+      target:
+        service-name: ${HERMOD_SERVICE_NAME:localhost}
+        scheme: ${HERMOD_SCHEME:http}
+        port: ${HERMOD_TARGET_PORT:${HERMOD_SERVICE_PORT:2223}}
