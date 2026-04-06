@@ -104,5 +104,12 @@ gateway:
         service-name: ${HERMOD_SERVICE_NAME:hermod}
         scheme: ${HERMOD_SCHEME:http}
         port: ${HERMOD_TARGET_PORT:${HERMOD_SERVICE_PORT:2222}}
+    gjallarhorn:
+      path-prefixes: [ "/gjallarhorn" ]
+      strip-prefix: true
+      target:
+        service-name: ${GJALLARHORN_SERVICE_NAME:gjallarhorn}
+        scheme: ${GJALLARHORN_SCHEME:http}
+        port: ${GJALLARHORN_TARGET_PORT:${GJALLARHORN_SERVICE_PORT:2223}}
 
 
