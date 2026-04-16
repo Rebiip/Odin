@@ -92,3 +92,10 @@ gateway:
         service-name: ${GJALLARHORN_SERVICE_NAME:localhost}
         scheme: ${GJALLARHORN_SCHEME:http}
         port: ${GJALLARHORN_TARGET_PORT:${GJALLARHORN_SERVICE_PORT:2223}}
+    forseti:
+      path-prefixes: [ "/forseti" ]
+      strip-prefix: true
+      target:
+        service-name: ${FORSETI_SERVICE_NAME:localhost}
+        scheme: ${FORSETI_SCHEME:http}
+        port: ${FORSETI_TARGET_PORT:${FORSETI_SERVICE_PORT:2228}}
