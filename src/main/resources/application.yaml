@@ -19,6 +19,14 @@ quarkus:
           name: health
           paths: [ "/q/health", "/q/health/*" ]
           enforcement-mode: disabled
+        preflight:
+          name: preflight
+          paths: [ "/*" ]
+          methods:
+            options:
+              method: OPTIONS
+              scopes: view
+          enforcement-mode: disabled
         api:
           paths: [ "/*" ]
           methods:

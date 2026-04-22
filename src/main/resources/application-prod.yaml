@@ -23,6 +23,14 @@ quarkus:
           name: openapi
           paths: [ "/q/openapi", "/q/openapi/*", "/q/swagger-ui", "/q/swagger-ui/*", "/q/metrics", "/q/metrics/*" ]
           enforcement-mode: disabled
+        preflight:
+          name: preflight
+          paths: [ "/*" ]
+          methods:
+            options:
+              method: OPTIONS
+              scopes: view
+          enforcement-mode: disabled
         api:
           paths: [ "/*" ]
           methods:
