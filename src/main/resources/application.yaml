@@ -19,6 +19,27 @@ quarkus:
           name: health
           paths: [ "/q/health", "/q/health/*" ]
           enforcement-mode: disabled
+        api:
+          paths: [ "/*" ]
+          methods:
+            get:
+              method: GET
+              scopes: view
+            head:
+              method: HEAD
+              scopes: view
+            post:
+              method: POST
+              scopes: create
+            put:
+              method: PUT
+              scopes: update
+            patch:
+              method: PATCH
+              scopes: update
+            delete:
+              method: DELETE
+              scopes: delete
   http:
     port: 2500
     read-timeout: 30M

@@ -23,6 +23,27 @@ quarkus:
           name: openapi
           paths: [ "/q/openapi", "/q/openapi/*", "/q/swagger-ui", "/q/swagger-ui/*", "/q/metrics", "/q/metrics/*" ]
           enforcement-mode: disabled
+        api:
+          paths: [ "/*" ]
+          methods:
+            get:
+              method: GET
+              scopes: view
+            head:
+              method: HEAD
+              scopes: view
+            post:
+              method: POST
+              scopes: create
+            put:
+              method: PUT
+              scopes: update
+            patch:
+              method: PATCH
+              scopes: update
+            delete:
+              method: DELETE
+              scopes: delete
 
   http:
     port: 2500
